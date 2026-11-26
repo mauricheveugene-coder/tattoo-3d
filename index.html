@@ -96,10 +96,33 @@
  bodyInput.addEventListener('change',e=>load(e.target.files[0],img=>{body=img;document.getElementById('bodyName').textContent=e.target.files[0].name;fit();document.getElementById('reset').disabled=false;if(art)document.getElementById('save').disabled=false}));
  tattooInput.addEventListener('change',e=>load(e.target.files[0],img=>{art=img;document.getElementById('tattooName').textContent=e.target.files[0].name;baseW=canvas.width*.34;baseH=baseW*(img.height/img.width);if(baseH>canvas.height*.65){baseH=canvas.height*.65;baseW=baseH*(img.width/img.height)};if(!body){toast('Теперь добавь фотографию тела');return}document.getElementById('save').disabled=false;draw()}));
  [scale,rotate,opacity,blend].forEach(el=>el.addEventListener('input',draw));
- function pos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
- canvas.addEventListener('pointerdown',e=>{if(!art)return;drag=true;pointer=pos(e);canvas.setPointerCapture(e.pointerId)});
- canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=pos(e);center.x+=p.x-pointer.x;center.y+=p.y-pointer.y;pointer=p;draw()});
- canvas.addEventListener('pointerup',()=>drag=false);canvas.addEventListener('pointercancel',()=>drag=false);
+ function pos(e){
+  const r=canvas.getBoundingClientRect();
+  return {x:(e.clientX-r.left)*(canvas.width/r.width),y:(e.clientY-r.top)*(canvas.height/r.height)};
+ }
+ let activePointer=null;
+ canvas.addEventListener('pointerdown',e=>{
+  if(!art||!body)return;
+  e.preventDefault();
+  drag=true;activePointer=e.pointerId;pointer=pos(e);
+  try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+ });
+ canvas.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==activePointer)return;
+  e.preventDefault();
+  const p=pos(e);
+  center.x += p.x-pointer.x;
+  center.y += p.y-pointer.y;
+  pointer=p;
+  draw();
+ });
+ const stopDrag=e=>{
+  if(activePointer!==null && e.pointerId!==undefined && e.pointerId!==activePointer)return;
+  drag=false;activePointer=null;pointer=null;
+ };
+ canvas.addEventListener('pointerup',stopDrag);
+ canvas.addEventListener('pointercancel',stopDrag);
+ canvas.addEventListener('lostpointercapture',stopDrag);
  document.getElementById('reset').onclick=()=>{if(!body)return;center={x:canvas.width/2,y:canvas.height/2};scale.value=100;rotate.value=0;opacity.value=85;blend.value='multiply';draw();toast('Настройки сброшены')};
  document.getElementById('save').onclick=()=>{if(!body||!art)return;const a=document.createElement('a');a.download='tattoo-3d-preview.png';a.href=canvas.toDataURL('image/png');a.click();toast('Изображение сохранено')};
  if('serviceWorker' in navigator && location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
