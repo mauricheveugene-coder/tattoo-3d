@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090909">
+  <meta name="description" content="TATTOO 3D — примерка татуировок на фотографии тела.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>TATTOO 3D — Virtual Try-On</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090909;--panel:#141414;--panel2:#1b1b1b;--line:#2b2b2b;--muted:#929292;--text:#f4f4f4;--accent:#d7b477}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#29231b 0,#101010 38%,var(--bg) 72%);color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    button,input{font:inherit}button{cursor:pointer}.app{max-width:1120px;margin:auto;padding:22px 18px 48px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 24px;border-bottom:1px solid var(--line)}
+    .brand{font-size:20px;letter-spacing:.18em;font-weight:800}.brand span{color:var(--accent)}.tag{font-size:10px;letter-spacing:.16em;color:var(--muted);margin-top:5px}
+    .status{font-size:11px;color:#c9b18a;border:1px solid #594a32;border-radius:30px;padding:7px 10px;letter-spacing:.08em}
+    .hero{padding:27px 0 20px}.eyebrow{color:var(--accent);font-size:10px;letter-spacing:.2em;font-weight:700}.hero h1{font-size:clamp(28px,6vw,46px);line-height:1.04;margin:10px 0 10px;letter-spacing:-.04em}.hero p{color:#aaa;max-width:600px;line-height:1.55;margin:0}
+    .layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(270px,.8fr);gap:16px;margin-top:18px}
+    .card{background:linear-gradient(145deg,#181818,#101010);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+    .cardhead{padding:15px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+    .cardhead strong{font-size:12px;letter-spacing:.12em}.step{color:var(--muted);font-size:10px;letter-spacing:.1em}
+    .stage{padding:14px;background:#080808;min-height:390px;display:grid;place-items:center;position:relative}
+    canvas{display:block;max-width:100%;max-height:68vh;width:auto;height:auto;object-fit:contain;background:#111;border-radius:8px;touch-action:none}
+    .empty{width:100%;min-height:350px;border:1px dashed #454545;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted);gap:9px}
+    .empty .symbol{font-size:34px;color:var(--accent)}.empty b{color:#eee;font-size:14px}.empty small{max-width:250px;line-height:1.5}
+    .stagehint{color:#777;font-size:11px;text-align:center;padding:0 12px 14px}
+    .side{display:flex;flex-direction:column;gap:12px}.section{padding:16px}.section h3{margin:0 0 12px;font-size:12px;letter-spacing:.12em}
+    .upload{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid #333;border-radius:12px;background:#111;margin-top:9px;min-height:68px}
+    .upload .ico{width:36px;height:36px;border-radius:10px;background:#28231b;color:var(--accent);display:grid;place-items:center;font-size:19px;flex:none}
+    .upload b{font-size:12px;display:block}.upload small{color:var(--muted);font-size:10px;display:block;margin-top:4px}
+    .upload input{display:none}.upload label{display:block;cursor:pointer;flex:1}
+    .control{margin:16px 0}.controltop{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px;font-size:11px;color:#c9c9c9}.controltop output{color:var(--accent);font-variant-numeric:tabular-nums}
+    input[type=range]{width:100%;accent-color:var(--accent)}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+    .btn{border:1px solid #3a3a3a;border-radius:10px;background:#202020;color:#eee;padding:12px 10px;font-size:11px;font-weight:700;letter-spacing:.06em}
+    .btn.primary{background:var(--accent);border-color:var(--accent);color:#17120b}.btn:disabled{opacity:.35;cursor:not-allowed}
+    .note{font-size:10px;line-height:1.5;color:#777;padding:0 16px 15px}
+    .footer{color:#686868;font-size:10px;text-align:center;padding:24px 0 0;letter-spacing:.08em}
+    .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:#eee;color:#111;padding:11px 16px;border-radius:30px;font-size:12px;opacity:0;pointer-events:none;transition:.25s;z-index:5}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:760px){.app{padding:15px 13px 35px}.layout{grid-template-columns:1fr}.stage{min-height:300px}canvas{max-height:55vh}.empty{min-height:280px}.hero{padding-top:23px}.status{font-size:9px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div><div class="brand">TATTOO<span>3D</span></div><div class="tag">VIRTUAL TATTOO STUDIO</div></div>
+    <div class="status">BETA · PHOTO STUDIO</div>
+  </header>
+  <section class="hero">
+    <div class="eyebrow">YOUR BODY. YOUR ART.</div>
+    <h1>Примерь свою<br>следующую татуировку.</h1>
+    <p>Загрузи фотографию участка тела и эскиз. Настрой размер, положение и прозрачность, а затем сохрани предварительный результат.</p>
+  </section>
+  <main class="layout">
+    <section class="card">
+      <div class="cardhead"><strong>ПРЕДПРОСМОТР</strong><span class="step">01 / CANVAS</span></div>
+      <div class="stage" id="stage">
+        <div class="empty" id="empty"><div class="symbol">✳</div><b>Твоя рабочая область</b><small>Сначала добавь фотографию тела, затем загрузи эскиз татуировки.</small></div>
+        <canvas id="canvas" hidden></canvas>
+      </div>
+      <div class="stagehint">Перетаскивай эскиз пальцем или мышью, чтобы изменить его положение.</div>
+    </section>
+    <aside class="side">
+      <section class="card section">
+        <h3>ИМПОРТ ИЗОБРАЖЕНИЙ</h3>
+        <div class="upload"><div class="ico">▧</div><label for="bodyFile"><b>1. Фотография тела</b><small id="bodyName">JPG, PNG, WEBP</small></label><input id="bodyFile" type="file" accept="image/*"></div>
+        <div class="upload"><div class="ico">✳</div><label for="tattooFile"><b>2. Эскиз татуировки</b><small id="tattooName">PNG с прозрачностью рекомендуется</small></label><input id="tattooFile" type="file" accept="image/*"></div>
+      </section>
+      <section class="card section">
+        <h3>НАСТРОЙКА ЭСКИЗА</h3>
+        <div class="control"><div class="controltop"><span>Размер</span><output id="scaleOut">100%</output></div><input id="scale" type="range" min="10" max="220" value="100"></div>
+        <div class="control"><div class="controltop"><span>Поворот</span><output id="rotateOut">0°</output></div><input id="rotate" type="range" min="-180" max="180" value="0"></div>
+        <div class="control"><div class="controltop"><span>Прозрачность</span><output id="opacityOut">85%</output></div><input id="opacity" type="range" min="5" max="100" value="85"></div>
+        <div class="control"><div class="controltop"><span>Режим смешивания</span></div><select id="blend" style="width:100%;padding:10px;background:#202020;border:1px solid #393939;border-radius:9px;color:#eee"><option value="multiply">Умножение — для чёрной тату</option><option value="source-over">Обычный</option><option value="darken">Затемнение</option></select></div>
+        <div class="actions"><button class="btn" id="reset" disabled>СБРОСИТЬ</button><button class="btn primary" id="save" disabled>СОХРАНИТЬ PNG</button></div>
+      </section>
+      <div class="card"><div class="note" style="padding-top:14px">Это первая версия редактора: наложение пока плоское, без автоматической 3D-деформации по анатомии. Следующие этапы добавят распознавание поверхности и AR.</div></div>
+    </aside>
+  </main>
+  <div class="footer">TATTOO 3D · EARLY ACCESS PROTOTYPE</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(()=>{
+ const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),empty=document.getElementById('empty');
+ const bodyInput=document.getElementById('bodyFile'),tattooInput=document.getElementById('tattooFile');
+ const scale=document.getElementById('scale'),rotate=document.getElementById('rotate'),opacity=document.getElementById('opacity'),blend=document.getElementById('blend');
+ let body=null,art=null,center={x:0,y:0},drag=false,pointer=null,baseW=0,baseH=0;
+ const toast=(s)=>{const t=document.getElementById('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2100)};
+ const fit=()=>{if(!body)return;const maxW=1200,maxH=1500,k=Math.min(1,maxW/body.width,maxH/body.height);canvas.width=Math.round(body.width*k);canvas.height=Math.round(body.height*k);center={x:canvas.width/2,y:canvas.height/2};empty.hidden=true;canvas.hidden=false;draw()};
+ function draw(){if(!body)return;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.globalCompositeOperation='source-over';ctx.drawImage(body,0,0,canvas.width,canvas.height);
+  if(art){const s=Number(scale.value)/100,angle=Number(rotate.value)*Math.PI/180,w=baseW*s,h=baseH*s;ctx.save();ctx.globalAlpha=Number(opacity.value)/100;ctx.globalCompositeOperation=blend.value;ctx.translate(center.x,center.y);ctx.rotate(angle);ctx.drawImage(art,-w/2,-h/2,w,h);ctx.restore()}
+  document.getElementById('scaleOut').textContent=scale.value+'%';document.getElementById('rotateOut').textContent=rotate.value+'°';document.getElementById('opacityOut').textContent=opacity.value+'%';
+ }
+ function load(file,cb){if(!file)return;const url=URL.createObjectURL(file),img=new Image();img.onload=()=>{cb(img);URL.revokeObjectURL(url)};img.onerror=()=>toast('Не удалось открыть изображение');img.src=url}
+ bodyInput.addEventListener('change',e=>load(e.target.files[0],img=>{body=img;document.getElementById('bodyName').textContent=e.target.files[0].name;fit();document.getElementById('reset').disabled=false;if(art)document.getElementById('save').disabled=false}));
+ tattooInput.addEventListener('change',e=>load(e.target.files[0],img=>{art=img;document.getElementById('tattooName').textContent=e.target.files[0].name;baseW=canvas.width*.34;baseH=baseW*(img.height/img.width);if(baseH>canvas.height*.65){baseH=canvas.height*.65;baseW=baseH*(img.width/img.height)};if(!body){toast('Теперь добавь фотографию тела');return}document.getElementById('save').disabled=false;draw()}));
+ [scale,rotate,opacity,blend].forEach(el=>el.addEventListener('input',draw));
+ function pos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
+ canvas.addEventListener('pointerdown',e=>{if(!art)return;drag=true;pointer=pos(e);canvas.setPointerCapture(e.pointerId)});
+ canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=pos(e);center.x+=p.x-pointer.x;center.y+=p.y-pointer.y;pointer=p;draw()});
+ canvas.addEventListener('pointerup',()=>drag=false);canvas.addEventListener('pointercancel',()=>drag=false);
+ document.getElementById('reset').onclick=()=>{if(!body)return;center={x:canvas.width/2,y:canvas.height/2};scale.value=100;rotate.value=0;opacity.value=85;blend.value='multiply';draw();toast('Настройки сброшены')};
+ document.getElementById('save').onclick=()=>{if(!body||!art)return;const a=document.createElement('a');a.download='tattoo-3d-preview.png';a.href=canvas.toDataURL('image/png');a.click();toast('Изображение сохранено')};
+ if('serviceWorker' in navigator && location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+})();
+</script>
+</body></html>

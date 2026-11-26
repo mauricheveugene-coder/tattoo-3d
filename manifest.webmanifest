@@ -1,0 +1,9 @@
+{
+  "name": "TATTOO 3D — Virtual Try-On",
+  "short_name": "TATTOO 3D",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#090909",
+  "theme_color": "#090909",
+  "description": "Примерка татуировок на фотографиях тела"
+}
